@@ -1,98 +1,92 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+    <h3>get请求</h3>
+    <p>{{ mock1 }}</p>
+    <h3>post请求</h3>
+    <p>{{ mock2 }}</p>
+    <h3>jsonp请求</h3>
+    <p>{{ mock3 }}</p>
   </div>
 </template>
 
 <script>
 export default {
-  name: "HelloWorld",
+  name: 'HelloWorld',
   props: {
-    msg: String
-  }
-};
+    msg: String,
+  },
+  data() {
+    return {
+      mock1: null,
+      mock2: null,
+      mock3: null,
+    }
+  },
+  created() {
+    this.testMock1()
+    this.testMock2()
+    this.testMock3((d) => {
+      this.mock3 = d.data.projects[1]
+    })
+  },
+  methods: {
+    jsonp(src, options) {
+      var callback_name = options.callbackName || 'callback'
+      var on_success = options.onSuccess || function() {}
+      var on_timeout = options.onTimeout || function() {}
+      var timeout = options.timeout || 5
+
+      var timeout_trigger = window.setTimeout(function() {
+        window[callback_name] = function() {}
+        on_timeout()
+      }, timeout * 1000)
+
+      window[callback_name] = function(data) {
+        window.clearTimeout(timeout_trigger)
+        on_success(data)
+      }
+
+      var script = document.createElement('script')
+      script.type = 'text/javascript'
+      script.async = true
+      script.src = src
+
+      document.getElementsByTagName('head')[0].appendChild(script)
+    },
+    testMock1() {
+      this.$axios({
+        url: 'http://localhost:8081/api/mocktest',
+        method: 'get',
+        params: {},
+      }).then((res) => {
+        this.mock1 = res.data.data.projects[0]
+      })
+    },
+    testMock2() {
+      this.$axios({
+        url: 'http://localhost:8081/api/login',
+        method: 'post',
+        data: { username: 'admin', password: 'admin' },
+      }).then((res) => {
+        this.mock2 = res.data.data
+      })
+    },
+    testMock3(cb) {
+      this.jsonp(
+        'http://localhost:8081/api/mocktest?jsonp_param_name=callback&callback=callback',
+        {
+          onTimeout: function() {
+            // alert('Timeout.')
+          },
+          onSuccess: function(d) {
+            cb(d)
+          },
+        }
+      )
+    },
+  },
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
