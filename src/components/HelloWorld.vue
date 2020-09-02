@@ -7,6 +7,8 @@
     <p>{{ mock2 }}</p>
     <h3>jsonp请求</h3>
     <p>{{ mock3 }}</p>
+    <h3>proxy请求</h3>
+    <p>{{ mock4 }}</p>
   </div>
 </template>
 
@@ -21,6 +23,7 @@ export default {
       mock1: null,
       mock2: null,
       mock3: null,
+      mock4: null,
     }
   },
   created() {
@@ -29,6 +32,7 @@ export default {
     this.testMock3((d) => {
       this.mock3 = d.data.projects[1]
     })
+    this.testMock4()
   },
   methods: {
     jsonp(src, options) {
@@ -84,6 +88,15 @@ export default {
           },
         }
       )
+    },
+    testMock4() {
+      this.$axios({
+        url: 'http://localhost:8081/api/proxy',
+        method: 'get',
+        params: { q: 'language:javascript', sort: 'stars' },
+      }).then((res) => {
+        this.mock4 = res.data.data.code
+      })
     },
   },
 }
