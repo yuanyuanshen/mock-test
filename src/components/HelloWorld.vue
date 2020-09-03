@@ -13,12 +13,13 @@
 </template>
 
 <script>
+import { proxy_get } from '../../api/easy_cli_test/index'
 export default {
   name: 'HelloWorld',
   props: {
     msg: String,
   },
-  data() {
+  data () {
     return {
       mock1: null,
       mock2: null,
@@ -26,7 +27,7 @@ export default {
       mock4: null,
     }
   },
-  created() {
+  created () {
     this.testMock1()
     this.testMock2()
     this.testMock3((d) => {
@@ -35,18 +36,18 @@ export default {
     this.testMock4()
   },
   methods: {
-    jsonp(src, options) {
+    jsonp (src, options) {
       var callback_name = options.callbackName || 'callback'
-      var on_success = options.onSuccess || function() {}
-      var on_timeout = options.onTimeout || function() {}
+      var on_success = options.onSuccess || function () { }
+      var on_timeout = options.onTimeout || function () { }
       var timeout = options.timeout || 5
 
-      var timeout_trigger = window.setTimeout(function() {
-        window[callback_name] = function() {}
+      var timeout_trigger = window.setTimeout(function () {
+        window[callback_name] = function () { }
         on_timeout()
       }, timeout * 1000)
 
-      window[callback_name] = function(data) {
+      window[callback_name] = function (data) {
         window.clearTimeout(timeout_trigger)
         on_success(data)
       }
@@ -58,7 +59,7 @@ export default {
 
       document.getElementsByTagName('head')[0].appendChild(script)
     },
-    testMock1() {
+    testMock1 () {
       this.$axios({
         url: 'http://localhost:8081/api/mocktest',
         method: 'get',
@@ -67,7 +68,7 @@ export default {
         this.mock1 = res.data.data.projects[0]
       })
     },
-    testMock2() {
+    testMock2 () {
       this.$axios({
         url: 'http://localhost:8081/api/login',
         method: 'post',
@@ -76,27 +77,30 @@ export default {
         this.mock2 = res.data.data
       })
     },
-    testMock3(cb) {
+    testMock3 (cb) {
       this.jsonp(
         'http://localhost:8081/api/mocktest?jsonp_param_name=callback&callback=callback',
         {
-          onTimeout: function() {
+          onTimeout: function () {
             // alert('Timeout.')
           },
-          onSuccess: function(d) {
+          onSuccess: function (d) {
             cb(d)
           },
         }
       )
     },
-    testMock4() {
-      this.$axios({
-        url: 'http://localhost:8081/api/proxy',
-        method: 'get',
-        params: { q: 'language:javascript', sort: 'stars' },
-      }).then((res) => {
+    testMock4 () {
+      proxy_get({ params: { q: 'language:javascript', sort: 'stars' } }).then((res) => {
         this.mock4 = res.data.data.code
       })
+      // this.$axios({
+      //   url: 'http://localhost:8081/api/proxy',
+      //   method: 'get',
+      //   params: { q: 'language:javascript', sort: 'stars' },
+      // }).then((res) => {
+      //   this.mock4 = res.data.data.code
+      // })
     },
   },
 }

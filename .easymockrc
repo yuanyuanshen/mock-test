@@ -1,0 +1,11 @@
+{
+     "host":"http://easy-mock.jd.com/",
+     "output": "api",
+     "template": "axios",
+     "projects": [
+       {
+         "id": "5ddba6ead8dabc00913ae0c3",
+         "name": "easy_cli_test"
+       }
+     ]
+}
